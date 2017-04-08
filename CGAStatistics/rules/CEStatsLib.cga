@@ -1,0 +1,104 @@
+/**
+ * File:    CEStatsLib.cga
+ * Created: 7 Apr 2017 18:15:17 GMT
+ * Author:  David Wasserman
+ */
+
+# Copyright 2017 David J. Wasserman
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# --------------------------------
+version "2016.1"
+
+attr test_data="20;30"
+
+const valid_test_data= listClean(test_data)
+
+retrieve_Float(string_list,index)= float(listItem(string_list,index))
+
+_Maxof(num1,num2)= #Finds the max of two numbers
+	case num1>=num2:
+		num1
+	else:
+		num2
+_Minof(num1,num2)= #Finds the max of two numbers
+	case num1<=num2:
+		num1
+	else:
+		num2
+
+calculate_Sum(string_list,start_sum,counter)=
+        #Get sum from string list of numbers .Start Values for Start Sum and Counter are assumed 0. 
+        case listSize(string_list)==counter:
+            start_sum
+        case counter==0:
+       		calculate_Sum(string_list,retrieve_Float(string_list,counter),counter+1)
+        else:
+            calculate_Sum (string_list,start_sum+ retrieve_Float (string_list,counter),counter+1)
+
+calculate_Max(string_list,start_max,counter)=
+        #Get Max from a string list of number. Start Values for Start Min and Counter are assumed 0. 
+        case listSize(string_list)==counter:
+            start_max
+        case counter==0:
+        	calculate_Max(string_list,retrieve_Float (string_list,counter),counter+1)
+        else:
+            calculate_Max(string_list,_Maxof(start_max, retrieve_Float (string_list,counter)),counter+1)
+
+calculate_Min(string_list, start_min ,counter)=
+        #Get min of  a string list of numbers.Start Values for Start Min and Counter are assumed 0. 
+        case listSize(string_list)==counter:
+            start_min
+        case counter==0:
+            calculate_Min(string_list,retrieve_Float (string_list,counter),counter+1)
+        else:
+            calculate_Min(string_list,_Minof( start_min , retrieve_Float(string_list,counter)),counter+1)
+
+calculate_Avg(string_list, start_min ,counter)=
+        #Get average of  a string list of numbers. Start Values for Start Min and Counter are assumed 0. 
+        calculate_Sum(string_list,retrieve_Float (string_list,counter),counter+1)/listSize(string_list)
+
+calculate_Var(string_list, start_diff ,counter)=
+	# Get the Variance of a string list of numbers, start sum and counter are assumed to be zero.
+	case listSize(string_list)==counter:
+        start_diff/listSize(string_list)
+    case counter==0:
+        calculate_Var(string_list,pow(retrieve_Float (string_list,counter)-calculate_Avg(string_list,0,0),2),counter+1)
+    else:
+        calculate_Var(string_list,start_diff+pow(retrieve_Float (string_list,counter)-calculate_Avg(string_list,0,0),2),counter+1)
+
+calculate_Std(string_list, start_diff ,counter)=
+	# Get the Standard Deviation of a string list of numbers, start sum and counter are assumed to be zero.
+	sqrt(calculate_Var(string_list,start_diff,counter))
+	
+calculate_COV(string_list,start_diff,counter)=
+	#Calculate coefficient of variation from string list, start_diff and counter assumed to be zero. 
+    calculate_Std(string_list,start_diff,counter)/calculate_Avg(string_list,start_diff,counter)
+
+
+Test-->    
+	print("Sum")     
+	print(calculate_Sum(valid_test_data,0,0))
+	print("Min")
+	print(calculate_Min(valid_test_data,0,0))
+	print("Max")
+	print(calculate_Max(valid_test_data,0,0))
+	print("Mean")
+	print(calculate_Avg(valid_test_data,0,0))
+	print("STD")
+	print(calculate_Std(valid_test_data,0,0))
+	print("Coeffcient of Variation")
+	print(calculate_COV(valid_test_data,0,0))
+	extrude(10*calculate_COV(valid_test_data,0,0))
+	color(_Minof(1,calculate_COV(valid_test_data,0,0)),0,0)
+	print("____________________________________________")
